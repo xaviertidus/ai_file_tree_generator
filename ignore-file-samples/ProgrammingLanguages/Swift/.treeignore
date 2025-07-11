@@ -1,0 +1,31 @@
+# Ignore build output directories
+DerivedData
+build
+*.xcarchive
+
+# Ignore dependency directories
+Pods  # CocoaPods
+Carthage/Build  # Carthage
+
+# Ignore Xcode user data
+*.xcuserstate
+*.xcscmblueprint
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode
+.idea
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+
+# Ignore version control
+.git
+
+# Ignore Swift Package Manager caches
+.swiftpm

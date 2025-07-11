@@ -1,0 +1,33 @@
+# Ignore dependency directories
+node_modules
+
+# Ignore build output directories
+dist
+build
+coverage
+
+# Ignore environment files
+.env
+.env.local
+
+# Ignore IDE and editor files
+.vscode
+.idea
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+
+# Ignore ESLint cache
+.eslintcache
+
+# Ignore version control
+.git
+
+# For Vite/Create React App: Ignore public/build artifacts
+public/build
+
+# For testing: Ignore snapshots
+src/__snapshots__

@@ -1,0 +1,47 @@
+# Ignore core Windows system directories
+Windows
+PerfLogs
+System Volume Information
+$RECYCLE.BIN
+$SysReset
+Recovery
+
+# Ignore program installation directories
+Program Files
+Program Files (x86)
+ProgramData
+
+# Ignore hidden system files (paging, hibernation, etc.)
+pagefile.sys
+hiberfil.sys
+swapfile.sys
+
+# Ignore temporary and cache directories
+Temp
+tmp
+*.tmp
+*.log
+
+# Ignore boot and config files
+bootmgr
+BOOTNXT
+bootsect.bak
+
+# For user profiles: Show C:\Users, but hide contents of AppData (caches, temps)
+contents:Users/*/AppData
+
+# Ignore other common non-user areas
+Intel
+AMD
+NVIDIA
+Drivers
+
+# Ignore IDE/editor files if present at root (unlikely, but common in user dirs)
+.vscode
+.idea
+
+# Ignore macOS-like files if cross-platform (e.g., .DS_Store)
+*.DS_Store
+
+# Note: Add custom patterns below as needed
+# Example: IntelOptics  # Vendor-specific caches

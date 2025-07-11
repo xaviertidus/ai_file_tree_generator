@@ -1,0 +1,31 @@
+# Ignore build output directories
+build
+out
+
+# Ignore dependency directories
+Modules  # If vendored
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode
+.idea
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.ps1xml  # Sometimes generated
+
+# Ignore version control
+.git
+
+# Ignore PowerShell history/cache
+consolehost_history.txt
+*.psc1  # Console files
+
+# Ignore test artifacts
+Tests/Output

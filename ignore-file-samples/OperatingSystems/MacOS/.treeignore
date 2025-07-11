@@ -1,0 +1,60 @@
+# Ignore core macOS system directories
+System
+Library
+private
+bin
+sbin
+etc
+usr
+var
+cores
+opt
+dev
+
+# Ignore application directories
+Applications
+
+# Ignore hidden system files and caches
+.DS_Store
+.Trashes
+.fseventsd
+.Spotlight-V100
+.VolumeIcon.icns
+.TemporaryItems
+.AppleDB
+.AppleDesktop
+.AppleDouble
+Network Trash Folder
+
+# Ignore swap and sleep files
+private/var/vm/swapfile*
+private/var/vm/sleepimage
+
+# Ignore temporary and cache directories
+tmp
+var/tmp
+var/folders
+var/cache
+Library/Caches
+
+# Ignore boot and config files
+mach_kernel
+com.apple.boot*
+
+# For user profiles: Show /Users, but hide contents of Library (caches, prefs, etc.)
+contents:Users/*/Library
+
+# Ignore other common non-user areas
+Volumes  # Mounted drives
+Network
+lost+found
+
+# Ignore IDE/editor files if present at root (unlikely, but common in user dirs)
+.vscode
+.idea
+
+# Ignore version control (if at root)
+.git
+
+# Note: Add custom patterns below as needed
+# Example: Users/*/Music/iTunes  # Media libraries if large

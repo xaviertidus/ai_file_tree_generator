@@ -1,0 +1,32 @@
+# Ignore build output directories
+bin
+obj
+
+# Ignore dependency directories
+packages  # NuGet
+
+# Ignore environment files
+.env
+appsettings.Development.json
+
+# Ignore IDE and editor files
+.vscode
+.idea
+*.csproj.user
+*.sln.docstates
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+
+# Ignore version control
+.git
+
+# Ignore test results
+TestResults
+*.trx
+
+# Ignore ReSharper caches
+_ReSharper*

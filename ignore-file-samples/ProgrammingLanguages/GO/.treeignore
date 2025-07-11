@@ -1,0 +1,29 @@
+# Ignore build output directories
+bin
+pkg
+
+# Ignore dependency directories
+vendor  # If vendoring
+
+# Ignore Go module cache (if present locally)
+go.sum  # Sometimes ignored in favor of go.mod
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode
+.idea
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+
+# Ignore version control
+.git
+
+# Ignore test caches
+testdata/
+*.test  # Compiled test binaries

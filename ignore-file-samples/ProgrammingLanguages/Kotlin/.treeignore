@@ -1,0 +1,29 @@
+# Ignore build output directories
+build
+*.apk
+*.dex
+
+# Ignore dependency directories
+.gradle
+
+# Ignore environment files
+.env
+local.properties
+
+# Ignore IDE and editor files
+.vscode
+.idea
+*.iml
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+
+# Ignore version control
+.git
+
+# Ignore Android-specific artifacts
+captures
+*.hprof

@@ -1,0 +1,38 @@
+# Ignore build output directories
+bin
+obj
+
+# Ignore dependency directories
+packages  # NuGet
+.nuget
+
+# Ignore Visual Studio caches
+.vs
+App_Data
+
+# Ignore user-specific files
+*.suo
+*.user
+*.sln.docstates
+*.vcxproj.user
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode  # If mixed
+.idea
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+Thumbs.db
+
+# Ignore version control
+.git
+
+# Ignore test results
+TestResults
+*.trx

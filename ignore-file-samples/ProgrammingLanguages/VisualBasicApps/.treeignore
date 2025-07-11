@@ -1,0 +1,33 @@
+# Ignore Office temporary files
+~*
+*.tmp
+*.bak
+
+# Ignore build/exported modules (if exporting VBA code)
+*.bas
+*.cls
+*.frm  # But only if not source-controlled
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode
+.idea
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+
+# Ignore version control
+.git
+
+# Ignore Office-specific caches
+ msoCache
+*.ldb  # Access lock files
+Content.MSO
+
+# For Excel: Ignore personal macro workbooks
+PERSONAL.XLSB

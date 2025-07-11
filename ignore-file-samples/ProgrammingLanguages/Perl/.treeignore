@@ -1,0 +1,33 @@
+# Ignore build output directories
+blib
+pm_to_blib
+
+# Ignore dependency directories
+local  # Local::Lib or vendor
+inc  # Module::Build
+
+# Ignore installed modules (if not using vendor)
+lib/perl5
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode
+.idea
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+*.bak
+
+# Ignore version control
+.git
+
+# Ignore CPAN/META artifacts
+META.yml
+META.json
+MYMETA.*
+MANIFEST.SKIP

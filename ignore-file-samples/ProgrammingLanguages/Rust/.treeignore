@@ -1,0 +1,24 @@
+# Ignore build output directories
+target
+
+# Ignore dependency directories
+Cargo.lock  # Often committed, but ignore if not
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode
+.idea
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+
+# Ignore version control
+.git
+
+# Ignore Rust-specific caches
+.rustc

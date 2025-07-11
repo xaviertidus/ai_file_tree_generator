@@ -1,0 +1,32 @@
+# Ignore build output directories
+target  # Maven
+build  # Gradle
+
+# Ignore dependency directories
+.gradle  # Gradle cache
+.m2  # Maven local repo (if present)
+
+# Ignore compiled classes
+*.class
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode
+.idea
+*.iml
+*.ipr
+*.iws
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+
+# Ignore version control
+.git
+
+# For Spring: Ignore application-local.properties
+application-local.properties

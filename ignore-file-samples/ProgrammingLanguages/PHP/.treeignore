@@ -1,0 +1,38 @@
+# Ignore dependency directories
+vendor
+
+# Ignore build output and caches
+bootstrap/cache
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views
+storage/logs
+
+# Ignore environment files
+.env
+.env.example  # Sometimes ignored to avoid leaking defaults
+
+# Ignore IDE and editor files
+.vscode
+.idea
+.netbeans
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore version control
+.git
+
+# For Laravel/Symfony: Ignore migrations, storage/uploads
+database/migrations
+public/uploads
+storage/app/public
+
+# For WordPress: Ignore uploads, plugins/themes if vendored
+wp-content/uploads
+wp-content/plugins
+wp-content/themes

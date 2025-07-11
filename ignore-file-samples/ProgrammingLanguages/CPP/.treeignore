@@ -1,0 +1,41 @@
+# Ignore build output directories
+build
+out
+CMakeFiles
+
+# Ignore compiled objects and executables
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.pdb  # Debug symbols
+
+# Ignore dependency directories
+deps
+third_party
+boost/
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode
+.idea
+*.sln  # Visual Studio
+*.vcxproj
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+core.*
+
+# Ignore version control
+.git
+
+# Ignore CMake artifacts
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt

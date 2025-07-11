@@ -1,0 +1,44 @@
+# Ignore build output directories
+dist
+build
+*.egg-info
+
+# Ignore dependency directories
+site-packages  # If not using venv
+
+# Ignore Python cache directories
+__pycache__
+*.pyc
+*.pyo
+
+# Show venv but ignore contents
+contents:.venv
+
+# Ignore environment files
+.env
+.env.local
+
+# Ignore IDE and editor files
+.vscode
+.idea
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+
+# For Django/Flask: Ignore migrations, media/static collected
+migrations
+media
+staticfiles
+*.sqlite3  # Local dev DB
+
+# For data science: Ignore Jupyter checkpoints, datasets
+.ipynb_checkpoints
+data/
+models/
+
+# Ignore test coverage
+.coverage
+htmlcov/

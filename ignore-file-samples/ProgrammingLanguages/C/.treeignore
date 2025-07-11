@@ -1,0 +1,38 @@
+# Ignore build output directories
+build
+out
+
+# Ignore compiled objects and executables
+*.o
+*.a
+*.so
+*.exe
+a.out  # Default Make output
+
+# Ignore dependency directories (if using external libs)
+deps
+lib
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor files
+.vscode
+.idea
+*.cbp  # Code::Blocks
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore logs and temporary files
+*.log
+core.*  # Core dumps
+
+# Ignore version control
+.git
+
+# Ignore Make artifacts
+Makefile.in
+config.log
+config.status
+autom4te.cache

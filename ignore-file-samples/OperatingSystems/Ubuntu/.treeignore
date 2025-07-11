@@ -1,0 +1,57 @@
+# Ignore core Ubuntu/Linux system directories
+boot
+etc
+lib
+lib32
+lib64
+libx32
+opt
+proc
+root
+run
+sbin
+srv
+sys
+usr
+var
+
+# Ignore package and dependency directories
+snap  # Snap packages
+apt/archives  # Deb caches
+*.deb
+
+# Ignore hidden system files and caches
+.lost+found
+.swapfile
+.vmlinuz*
+.initramfs*
+
+# Ignore temporary and cache directories
+tmp
+var/tmp
+var/cache
+var/log
+var/spool
+
+# Ignore boot and config files
+initrd.img*
+vmlinuz*
+
+# For user profiles: Show /home, but hide contents of .cache (caches, temps)
+contents:home/*/.cache
+
+# Ignore other common non-user areas
+media  # Mounted media
+mnt  # Mount points
+cdrom
+dev
+
+# Ignore IDE/editor files if present at root (unlikely, but common in user dirs)
+.vscode
+.idea
+
+# Ignore version control (if at root)
+.git
+
+# Note: Add custom patterns below as needed
+# Example: home/*/Downloads/largefiles  # Custom user subdirs
