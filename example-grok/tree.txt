@@ -1,0 +1,108 @@
+../expense-manager-app
+├── .treeignore
+├── README.md
+├── services
+│   ├── .venv
+│   ├── app.py
+│   ├── cdk.json
+│   ├── expense_manager_stack.py
+│   ├── README.md
+│   ├── requirements-dev.txt
+│   ├── requirements.txt
+│   ├── services
+│   │   ├── __init__.py
+│   │   └── services_stack.py
+│   ├── source.bat
+│   └── tests
+│       ├── __init__.py
+│       └── unit
+│           ├── __init__.py
+│           └── test_services_stack.py
+└── web-app
+    ├── .venv
+    ├── app.py
+    ├── cdk.context.json
+    ├── cdk.json
+    ├── configuration.json
+    ├── lambda
+    │   ├── create_expense.py
+    │   ├── create_receipt.py
+    │   ├── create_report.py
+    │   ├── delete_receipt.py
+    │   ├── get_expense.py
+    │   ├── get_receipt_url.py
+    │   ├── get_receipt.py
+    │   ├── get_settings.py
+    │   ├── list_expenses.py
+    │   ├── list_receipts.py
+    │   ├── list_reports.py
+    │   ├── list_types.py
+    │   ├── save_draft.py
+    │   └── update_settings.py
+    ├── package-lock.json
+    ├── package.json
+    ├── react-app
+    │   ├── config-overrides.js
+    │   ├── package-lock.json
+    │   ├── package.json
+    │   ├── public
+    │   │   ├── favicon.ico
+    │   │   ├── index.html
+    │   │   ├── manifest.json
+    │   │   └── robots.txt
+    │   ├── README.md
+    │   ├── src
+    │   │   ├── App.css
+    │   │   ├── App.js
+    │   │   ├── App.test.js
+    │   │   ├── assets
+    │   │   │   ├── fonts
+    │   │   │   ├── images
+    │   │   │   │   ├── apple-logo.svg
+    │   │   │   │   ├── crop-region.svg
+    │   │   │   │   ├── google-icon-logo.svg
+    │   │   │   │   └── rotate.svg
+    │   │   │   └── styles
+    │   │   ├── components
+    │   │   │   ├── common
+    │   │   │   ├── layout
+    │   │   │   └── ui
+    │   │   │       ├── Header.jsx
+    │   │   │       └── UploadSingleFile.jsx
+    │   │   ├── config.js
+    │   │   ├── eslintrc.json
+    │   │   ├── index.css
+    │   │   ├── index.js
+    │   │   ├── pages
+    │   │   │   ├── ConfirmRegistration
+    │   │   │   │   └── ConfirmRegistrationPage.jsx
+    │   │   │   ├── expenses
+    │   │   │   │   └── ListExpenses.jsx
+    │   │   │   ├── Home
+    │   │   │   │   └── HomePage.jsx
+    │   │   │   ├── Register
+    │   │   │   │   └── RegisterPage.jsx
+    │   │   │   └── Upload
+    │   │   │       └── UploadPage.jsx
+    │   │   ├── reportWebVitals.js
+    │   │   ├── setupTests.js
+    │   │   └── tailwind.config.js
+    │   └── vite.config.js
+    ├── README.md
+    ├── requirements-dev.txt
+    ├── requirements.txt
+    ├── schema
+    │   └── expenseSchema.json
+    ├── source.bat
+    ├── stacks
+    │   ├── __init__.py
+    │   ├── api_stack.py
+    │   ├── cloudfront_stack.py
+    │   ├── dynamodb_stack.py
+    │   ├── s3_stack.py
+    │   └── static_site_stack.py
+    └── tests
+        ├── __init__.py
+        └── unit
+            ├── __init__.py
+            └── test_web_app_stack.py
