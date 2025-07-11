@@ -5,21 +5,24 @@
 # Validates .treeignore before building tree, warns on duplicates and leading dots
 # Deduplicates patterns before processing
 # Handles trailing slashes and leading dots in patterns
-# Usage: ./generate_grok_file_tree.sh [options] [<directory_path>] [<output_file>]
+# Supports regex patterns in .treeignore for advanced matching
+# Usage: ./ai-file-tree-generator.sh [options] [<directory_path>] [<output_file>]
 # Options:
 #   --help     Display this help message
 #   --version  Display the script version
 #   --format FORMAT  Output format: grok-ascii (default), json, yaml, xml, markdown, dot, csv, excel
 #                    Note: excel outputs CSV format importable to Excel.
 #   --pack     Compact output by stripping whitespace (for compatible formats; defaults to human-readable)
+#   --ignore-file FILE  Path to custom ignore file (overrides .treeignore in directory)
 # If <output_file> is not provided, defaults based on format (e.g., tree.txt for grok-ascii, tree.json for json)
 # If <directory_path> is not provided, defaults to current directory "."
 
-VERSION="0.03a"
+VERSION="0.04a"
 
 # Improved option parsing to handle options anywhere, not just before positionals
 FORMAT="grok-ascii"
 PACK=false
+IGNORE_FILE=""
 POSITIONALS=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -31,6 +34,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --format FORMAT  Output format: grok-ascii (default), json, yaml, xml, markdown, dot, csv, excel"
             echo "                   Note: excel outputs CSV format importable to Excel."
             echo "  --pack     Compact output by stripping whitespace (for compatible formats; defaults to human-readable)"
+            echo "  --ignore-file FILE  Path to custom ignore file (overrides .treeignore in directory)"
             echo "Defaults:"
             echo "  <directory_path> defaults to '.' if not provided"
             echo "  <output_file> defaults based on format (e.g., tree.txt for grok-ascii)"
@@ -46,6 +50,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --pack)
             PACK=true
+            ;;
+        --ignore-file)
+            IGNORE_FILE="$2"
+            shift
             ;;
         *)
             POSITIONALS+=("$1")
@@ -81,14 +89,23 @@ if [ ! -d "$DIRECTORY" ]; then
     exit 1
 fi
 
-# Changed section: Check for .treeignore; warn and offer to create sample if missing
+# Changed section: Use --ignore-file if provided, else default to .treeignore in DIRECTORY
 TREEIGNORE_FILE="$DIRECTORY/.treeignore"
-if [ ! -f "$TREEIGNORE_FILE" ]; then
-    echo "Warning: No .treeignore file found in '$DIRECTORY'. It's rare to want to include all directories (e.g., .git, .DS_Store) in the tree."
-    echo "Would you like to create a sample .treeignore file? (y/n)"
-    read -r response
-    if [[ "$response" =~ ^[Yy]$ ]]; then
-        cat > "$TREEIGNORE_FILE" << EOL
+if [ -n "$IGNORE_FILE" ]; then
+    if [ ! -f "$IGNORE_FILE" ]; then
+        echo "Warning: Specified ignore file '$IGNORE_FILE' does not exist. Proceeding without exclusions."
+        TREEIGNORE_FILE=""
+    else
+        TREEIGNORE_FILE="$IGNORE_FILE"
+    fi
+else
+    # Warn and offer sample only if no .treeignore in DIRECTORY and no --ignore-file
+    if [ ! -f "$TREEIGNORE_FILE" ]; then
+        echo "Warning: No .treeignore file found in '$DIRECTORY'. It's rare to want to include all directories (e.g., .git, .DS_Store) in the tree."
+        echo "Would you like to create a sample .treeignore file? (y/n)"
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            cat > "$TREEIGNORE_FILE" << EOL
 # Sample .treeignore file with common exclusions
 .git
 .DS_Store
@@ -97,11 +114,12 @@ __pycache__
 *.log
 *.gitignore
 EOL
-        echo "Sample .treeignore created in '$DIRECTORY'."
+            echo "Sample .treeignore created in '$DIRECTORY'."
+        fi
     fi
 fi
 
-# Validate .treeignore file and collect unique patterns
+# Validate .treeignore file and collect unique patterns (if file exists)
 unique_patterns=()
 if [ -f "$TREEIGNORE_FILE" ]; then
     line_number=0
@@ -174,26 +192,27 @@ for pat in "${unique_patterns[@]}"; do
     fi
 done
 
-# Function to check if a name is regularly excluded
-is_excluded() {
+# Changed section: Support regex matching for exclusions
+# Function to check if a name matches any regex in array
+matches_regex() {
     local name="$1"
-    for pat in "${reg_excl[@]}"; do
-        if [[ $name == $pat ]]; then
+    shift
+    for pat in "$@"; do
+        if [[ $name =~ $pat ]]; then
             return 0
         fi
     done
     return 1
 }
 
-# Function to check if a name is contents excluded (show dir, hide contents)
+# Function to check if a name is regularly excluded (using regex)
+is_excluded() {
+    matches_regex "$1" "${reg_excl[@]}"
+}
+
+# Function to check if a name is contents excluded (show dir, hide contents) (using regex)
 is_contents_excluded() {
-    local name="$1"
-    for pat in "${cont_excl[@]}"; do
-        if [[ $name == $pat ]]; then
-            return 0
-        fi
-    done
-    return 1
+    matches_regex "$1" "${cont_excl[@]}"
 }
 
 # For grok-ascii format, use tree or find fallback with exclusions
@@ -244,7 +263,7 @@ if [[ "$FORMAT" == "grok-ascii" ]]; then
             tree -a -I "$REGULAR_EXCLUSIONS" --noreport "$DIRECTORY" > "$OUTPUT_FILE"
         fi
     else
-        # Changed section: Warn and provide installation instructions when falling back to find
+        # Warn and provide installation instructions when falling back to find
         echo "tree command not found. Using find command (output may differ slightly)."
         echo "To install tree:"
         echo "  - On Debian/Ubuntu: sudo apt install tree"
@@ -279,7 +298,7 @@ if [[ "$FORMAT" == "grok-ascii" ]]; then
     fi
 else
     # For other formats, use recursive bash functions to build the tree
-    # Changed section: Adjust indentation/spacing based on $PACK
+    # Adjust indentation/spacing based on $PACK
     INDENT="  "
     SUBINDENT="    "
     if $PACK; then
