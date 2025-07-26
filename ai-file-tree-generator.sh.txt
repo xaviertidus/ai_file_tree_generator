@@ -1,45 +1,39 @@
 #!/bin/bash
 
-# ai-file-tree-generator.sh
-# Generates a tree-like text representation of a directory structure and optionally packs code file contents.
-# Reads exclusion patterns from .treeignore, supporting # comments and contents: prefix.
-# Validates .treeignore before building tree, warns on duplicates and leading dots (suppressed for common patterns).
-# Deduplicates patterns before processing.
-# Handles trailing slashes and leading dots in patterns.
-# Supports regex patterns in .treeignore for advanced matching.
+# Script to generate a tree-like text representation of a directory structure
+# Reads exclusion patterns from .treeignore, supporting # comments and contents: prefix
+# Validates .treeignore before building tree, warns on duplicates and leading dots
+# Deduplicates patterns before processing
+# Handles trailing slashes and leading dots in patterns
+# Supports regex patterns in .treeignore for advanced matching
 # Usage: ./ai-file-tree-generator.sh [options] [<directory_path>] [<output_file>]
 # Options:
-#   --help            Display this help message
-#   --version         Display the script version
-#   --format FORMAT   Output format: grok-ascii (default), json, yaml, xml, markdown, dot, csv, excel
-#                     Note: excel outputs CSV format importable to Excel.
-#   --compact         Compact output by stripping whitespace (for compatible formats; defaults to human-readable)
-#   --pack-code-files Append contents of code files (e.g., *.py, *.js, *.css, *.json) in <DOCUMENT> format (grok-ascii only)
+#   --help     Display this help message
+#   --version  Display the script version
+#   --format FORMAT  Output format: grok-ascii (default), json, yaml, xml, markdown, dot, csv, excel
+#                    Note: excel outputs CSV format importable to Excel.
+#   --pack     Compact output by stripping whitespace (for compatible formats; defaults to human-readable)
 #   --ignore-file FILE  Path to custom ignore file (overrides .treeignore in directory)
-# If <directory_path> is not provided, defaults to current directory ".".
-# If <output_file> is not provided, defaults based on format (e.g., tree.txt for grok-ascii).
+# If <output_file> is not provided, defaults based on format (e.g., tree.txt for grok-ascii, tree.json for json)
+# If <directory_path> is not provided, defaults to current directory "."
 
-VERSION="0.04c"  # Updated version for macOS fix
+VERSION="0.04a"
 
-# Initialize variables
+# Improved option parsing to handle options anywhere, not just before positionals
 FORMAT="grok-ascii"
-COMPACT=false
-PACK_CODE_FILES=false
+PACK=false
 IGNORE_FILE=""
 POSITIONALS=()
-
-# Option parsing
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --help)
             echo "Usage: $0 [options] [<directory_path>] [<output_file>]"
             echo "Options:"
-            echo "  --help            Display this help message"
-            echo "  --version         Display the script version"
-            echo "  --format FORMAT   Output format: grok-ascii (default), json, yaml, xml, markdown, dot, csv, excel"
-            echo "                    Note: excel outputs CSV format importable to Excel."
-            echo "  --compact         Compact output by stripping whitespace (for compatible formats; defaults to human-readable)"
-            echo "  --pack-code-files Append contents of code files (e.g., *.py, *.js, *.css, *.json) in <DOCUMENT> format (grok-ascii only)"
+            echo "  --help     Display this help message"
+            echo "  --version  Display the script version"
+            echo "  --format FORMAT  Output format: grok-ascii (default), json, yaml, xml, markdown, dot, csv, excel"
+            echo "                   Note: excel outputs CSV format importable to Excel."
+            echo "  --pack     Compact output by stripping whitespace (for compatible formats; defaults to human-readable)"
             echo "  --ignore-file FILE  Path to custom ignore file (overrides .treeignore in directory)"
             echo "Defaults:"
             echo "  <directory_path> defaults to '.' if not provided"
@@ -54,11 +48,8 @@ while [[ $# -gt 0 ]]; do
             FORMAT="$2"
             shift
             ;;
-        --compact)
-            COMPACT=true
-            ;;
-        --pack-code-files)
-            PACK_CODE_FILES=true
+        --pack)
+            PACK=true
             ;;
         --ignore-file)
             IGNORE_FILE="$2"
@@ -71,27 +62,9 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-# Validate --compact and --pack-code-files
-if $COMPACT && $PACK_CODE_FILES; then
-    echo "Error: --compact and --pack-code-files cannot be used together."
-    exit 1
-fi
-
-# Validate --pack-code-files with grok-ascii
-if $PACK_CODE_FILES && [ "$FORMAT" != "grok-ascii" ]; then
-    echo "Warning: --pack-code-files is only supported with --format grok-ascii. Ignoring --pack-code-files."
-    PACK_CODE_FILES=false
-fi
-
 # Assign positionals
 DIRECTORY="${POSITIONALS[0]:-.}"
 OUTPUT_FILE="${POSITIONALS[1]:-}"
-
-# Resolve absolute path for directory
-if ! DIRECTORY=$(cd "$DIRECTORY" && pwd); then
-    echo "Error: Directory '$DIRECTORY' does not exist or is inaccessible."
-    exit 1
-fi
 
 # Set default output file based on format if not provided
 if [ -z "$OUTPUT_FILE" ]; then
@@ -110,27 +83,13 @@ if [ -z "$OUTPUT_FILE" ]; then
     esac
 fi
 
-# Resolve output file path (macOS-compatible)
-if [[ "$OUTPUT_FILE" == /* ]]; then
-    # Absolute path
-    OUTPUT_FILE="$OUTPUT_FILE"
-else
-    # Relative path, resolve relative to current directory
-    OUTPUT_FILE="$(pwd)/$OUTPUT_FILE"
-fi
-# Normalize path (remove ./ or ../)
-OUTPUT_FILE=$(echo "$OUTPUT_FILE" | sed 's|/\./|/|g; s|/\.\./|/|g')
-# Ensure output directory exists
-OUTPUT_DIR=$(dirname "$OUTPUT_FILE")
-if [ ! -d "$OUTPUT_DIR" ]; then
-    mkdir -p "$OUTPUT_DIR" || {
-        echo "Error: Cannot create output directory '$OUTPUT_DIR'."
-        exit 1
-    }
+# Validate directory exists
+if [ ! -d "$DIRECTORY" ]; then
+    echo "Error: Directory '$DIRECTORY' does not exist."
+    exit 1
 fi
 
-# Validate .treeignore and collect unique patterns
-unique_patterns=()
+# Changed section: Use --ignore-file if provided, else default to .treeignore in DIRECTORY
 TREEIGNORE_FILE="$DIRECTORY/.treeignore"
 if [ -n "$IGNORE_FILE" ]; then
     if [ ! -f "$IGNORE_FILE" ]; then
@@ -140,6 +99,7 @@ if [ -n "$IGNORE_FILE" ]; then
         TREEIGNORE_FILE="$IGNORE_FILE"
     fi
 else
+    # Warn and offer sample only if no .treeignore in DIRECTORY and no --ignore-file
     if [ ! -f "$TREEIGNORE_FILE" ]; then
         echo "Warning: No .treeignore file found in '$DIRECTORY'. It's rare to want to include all directories (e.g., .git, .DS_Store) in the tree."
         echo "Would you like to create a sample .treeignore file? (y/n)"
@@ -153,45 +113,46 @@ node_modules
 __pycache__
 *.log
 *.gitignore
-*.png
-*.jpg
-*.ico
 EOL
             echo "Sample .treeignore created in '$DIRECTORY'."
         fi
     fi
 fi
 
+# Validate .treeignore file and collect unique patterns (if file exists)
+unique_patterns=()
 if [ -f "$TREEIGNORE_FILE" ]; then
     line_number=0
-    common_dot_patterns=(".git" ".DS_Store" ".env" ".env.local" ".env.development" ".env.production" ".vscode" ".idea")
     while IFS= read -r line; do
         ((line_number++))
+        # Skip full comment lines
         if [[ ! "$line" =~ ^\s*# ]]; then
+            # Strip inline comments
             clean_line=$(echo "$line" | sed 's/\s*#.*$//')
+            # Split line into patterns (space-separated)
             IFS=' ' read -ra patterns <<< "$clean_line"
             for pattern in "${patterns[@]}"; do
+                # Check for empty pattern
+                if [ -z "$pattern" ] && [ -n "$line" ]; then
+                    echo "Error in $TREEIGNORE_FILE at line $line_number: Empty pattern after stripping comment"
+                    exit 1
+                fi
+                # Process non-empty patterns
                 if [ -n "$pattern" ]; then
+                    # Check for invalid characters (e.g., '|')
                     if [[ "$pattern" =~ \| ]]; then
                         echo "Error in $TREEIGNORE_FILE at line $line_number: Pattern '$pattern' contains invalid character '|'"
                         exit 1
                     fi
+                    # Check for trailing slashes (warn, as they’re cleaned later)
                     if [[ "$pattern" =~ /+$ && ! "$pattern" =~ ^contents: ]]; then
                         echo "Warning in $TREEIGNORE_FILE at line $line_number: Pattern '$pattern' contains trailing slash, which will be ignored"
                     fi
+                    # Check for leading dots (warn, as they may cause issues with find
                     if [[ "$pattern" =~ ^\..* && ! "$pattern" =~ ^contents: && ! "$pattern" =~ ^\*\. ]]; then
-                        # Suppress warning for common dot patterns
-                        is_common=false
-                        for common in "${common_dot_patterns[@]}"; do
-                            if [ "$pattern" = "$common" ]; then
-                                is_common=true
-                                break
-                            fi
-                        done
-                        if ! $is_common; then
-                            echo "Warning in $TREEIGNORE_FILE at line $line_number: Pattern '$pattern' starts with a dot, which may cause issues with find"
-                        fi
+                        echo "Warning in $TREEIGNORE_FILE at line $line_number: Pattern '$pattern' starts with a dot, which may cause issues with find (install tree for better support)"
                     fi
+                    # Check for malformed contents: patterns
                     if [[ "$pattern" =~ ^contents: ]]; then
                         dir=$(echo "$pattern" | sed 's/^contents://' | sed 's:/*$::' | sed 's:^/*::')
                         if [ -z "$dir" ]; then
@@ -199,6 +160,7 @@ if [ -f "$TREEIGNORE_FILE" ]; then
                             exit 1
                         fi
                     fi
+                    # Check for duplicate patterns using array loop (warn only)
                     clean_pattern=$(echo "$pattern" | sed 's:/*$::')
                     is_duplicate=false
                     for existing in "${unique_patterns[@]}"; do
@@ -210,6 +172,7 @@ if [ -f "$TREEIGNORE_FILE" ]; then
                     if $is_duplicate; then
                         echo "Warning in $TREEIGNORE_FILE at line $line_number: Duplicate pattern '$clean_pattern'"
                     else
+                        # Add to unique list
                         unique_patterns+=("$clean_pattern")
                     fi
                 fi
@@ -218,7 +181,7 @@ if [ -f "$TREEIGNORE_FILE" ]; then
     done < "$TREEIGNORE_FILE"
 fi
 
-# Separate regular and contents exclusions
+# Separate regular exclusions and contents exclusions
 declare -a reg_excl cont_excl
 for pat in "${unique_patterns[@]}"; do
     if [[ "$pat" =~ ^contents: ]]; then
@@ -229,6 +192,7 @@ for pat in "${unique_patterns[@]}"; do
     fi
 done
 
+# Changed section: Support regex matching for exclusions
 # Function to check if a name matches any regex in array
 matches_regex() {
     local name="$1"
@@ -241,47 +205,25 @@ matches_regex() {
     return 1
 }
 
-# Function to check if a name is regularly excluded
+# Function to check if a name is regularly excluded (using regex)
 is_excluded() {
     matches_regex "$1" "${reg_excl[@]}"
 }
 
-# Function to check if a name is contents excluded
+# Function to check if a name is contents excluded (show dir, hide contents) (using regex)
 is_contents_excluded() {
     matches_regex "$1" "${cont_excl[@]}"
 }
 
-# Function to check if a file is a code file
-is_code_file() {
-    local file="$1"
-    local extension="${file##*.}"
-    case "$extension" in
-        py|js|css|json|html|sh|md|txt)
-            return 0
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-}
-
-# Change to directory for tree and file operations
-cd "$DIRECTORY" || exit 1
-
-# Initialize output file
-> "$OUTPUT_FILE" || {
-    echo "Error: Cannot write to output file '$OUTPUT_FILE'."
-    exit 1
-}
-
-# Generate tree based on format
+# For grok-ascii format, use tree or find fallback with exclusions
 if [[ "$FORMAT" == "grok-ascii" ]]; then
     REGULAR_EXCLUSIONS=$(IFS='|'; echo "${reg_excl[*]}")
     CONTENTS_EXCLUSIONS=$(IFS='|'; echo "${cont_excl[*]}/*")
+    # Using tree if available
     if command -v tree >/dev/null 2>&1; then
         if [ -n "$CONTENTS_EXCLUSIONS" ]; then
             temp_file=$(mktemp)
-            tree -a -I "$REGULAR_EXCLUSIONS" --noreport . > "$temp_file"
+            tree -a -I "$REGULAR_EXCLUSIONS" --noreport "$DIRECTORY" > "$temp_file"
             awk -v excl="$CONTENTS_EXCLUSIONS" '
             BEGIN {
                 skipping_level = -1;
@@ -318,21 +260,18 @@ if [[ "$FORMAT" == "grok-ascii" ]]; then
             }' "$temp_file" > "$OUTPUT_FILE"
             rm "$temp_file"
         else
-            if $COMPACT; then
-                tree -a -I "$REGULAR_EXCLUSIONS" --noreport . | sed 's/^[ \t]*//' >> "$OUTPUT_FILE"
-            else
-                tree -a -I "$REGULAR_EXCLUSIONS" --noreport . >> "$OUTPUT_FILE"
-            fi
+            tree -a -I "$REGULAR_EXCLUSIONS" --noreport "$DIRECTORY" > "$OUTPUT_FILE"
         fi
     else
-        echo "tree command not found. Using find command (output may differ slightly)." >&2
-        echo "To install tree:" >&2
-        echo "  - On macOS: brew install tree" >&2
-        echo "  - On Debian/Ubuntu: sudo apt install tree" >&2
-        echo "  - On CentOS/RHEL: yum install tree" >&2
+        # Warn and provide installation instructions when falling back to find
+        echo "tree command not found. Using find command (output may differ slightly)."
+        echo "To install tree:"
+        echo "  - On Debian/Ubuntu: sudo apt install tree"
+        echo "  - On macOS: brew install tree"
+        echo "  - On CentOS/RHEL: sudo yum install tree"
         basename_dir=$(basename "$DIRECTORY")
-        echo "$basename_dir" >> "$OUTPUT_FILE"
-        FIND_CMD="find . -type f -o -type d"
+        echo "$basename_dir" > "$OUTPUT_FILE"
+        FIND_CMD="find \"$DIRECTORY\" -type f -o -type d"
         for pattern in "${reg_excl[@]}"; do
             clean_pattern=$(echo "$pattern" | sed 's:/*$::' | sed 's:^/*::')
             if [[ "$clean_pattern" =~ ^\*\. ]]; then
@@ -351,60 +290,24 @@ if [[ "$FORMAT" == "grok-ascii" ]]; then
                 if [ -n "$pattern" ]; then
                     dir=$(echo "$pattern" | sed 's:/*$::' | sed 's:^/*::' | cut -d'/' -f1)
                     FIND_CMD="$FIND_CMD -not -path \"*/$dir/*\""
-                    [ -d "./$dir" ] && echo "├── $dir" >> "$OUTPUT_FILE"
+                    [ -d "$DIRECTORY/$dir" ] && echo "├── $dir" >> "$OUTPUT_FILE"
                 fi
             done <<< "$CONTENTS_EXCLUSIONS"
         fi
-        eval "$FIND_CMD -printf \"├── %p\\n\" | sed \"s|./||\" | sort -u" >> "$OUTPUT_FILE"
-    fi
-
-    # Wrap tree in <DOCUMENT> tags
-    temp_file=$(mktemp)
-    echo "<DOCUMENT filename=\"project_file_tree.txt\">" > "$temp_file"
-    cat "$OUTPUT_FILE" >> "$temp_file"
-    echo "</DOCUMENT>" >> "$temp_file"
-    mv "$temp_file" "$OUTPUT_FILE"
-
-    # Append code file contents if --pack-code-files
-    if $PACK_CODE_FILES; then
-        echo "" >> "$OUTPUT_FILE"
-        echo "Appending code file contents..." >&2
-        FIND_CMD="find . -type f"
-        for pattern in "${reg_excl[@]}"; do
-            clean_pattern=$(echo "$pattern" | sed 's:/*$::' | sed 's:^/*::')
-            if [[ "$clean_pattern" =~ ^\*\. ]]; then
-                glob_pattern=$(echo "$clean_pattern" | sed 's/^\*\./*./')
-                FIND_CMD="$FIND_CMD -not -name \"$glob_pattern\""
-            else
-                FIND_CMD="$FIND_CMD -not -path \"*/$clean_pattern/*\" -not -name \"$clean_pattern\""
-            fi
-        done
-        for pattern in "${cont_excl[@]}"; do
-            clean_pattern=$(echo "$pattern" | sed 's:/*$::' | sed 's:^/*::')
-            FIND_CMD="$FIND_CMD -not -path \"*/$clean_pattern/*\""
-        done
-        eval "$FIND_CMD" | while IFS= read -r file; do
-            if is_code_file "$file"; then
-                echo "Including: $file" >&2
-                echo "<DOCUMENT filename=\"${file#./}\">" >> "$OUTPUT_FILE"
-                cat "$file" >> "$OUTPUT_FILE"
-                echo "</DOCUMENT>" >> "$OUTPUT_FILE"
-                echo "" >> "$OUTPUT_FILE"
-            else
-                echo "Skipping non-code file: $file" >&2
-            fi
-        done
+        eval "$FIND_CMD -printf \"├── %p\\n\" | sed \"s|$DIRECTORY/||\" | sort -u" >> "$OUTPUT_FILE"
     fi
 else
-    # Other formats (json, yaml, xml, markdown, dot, csv, excel)
+    # For other formats, use recursive bash functions to build the tree
+    # Adjust indentation/spacing based on $PACK
     INDENT="  "
     SUBINDENT="    "
-    if $COMPACT; then
+    if $PACK; then
         INDENT=""
         SUBINDENT=""
     fi
     case "$FORMAT" in
         json)
+            # Recursive function to build JSON tree
             build_json() {
                 local dir="$1"
                 local is_root="$2"
@@ -439,13 +342,14 @@ else
                 output+=("}")
                 printf '%s\n' "${output[@]}"
             }
-            build_json . "true" | tr -d '\n ' > "$OUTPUT_FILE"
-            if ! $COMPACT; then
-                # Use portable sed syntax
-                sed -i.bak 's/[{,]/&\n/g' "$OUTPUT_FILE" && rm "$OUTPUT_FILE.bak"
+            build_json "$DIRECTORY" "true" | tr -d '\n ' > "$OUTPUT_FILE"  # Further compact if --pack
+            if ! $PACK; then
+                # If not pack, we already have indents, but for pack we remove all whitespace
+                sed -i '' 's/[{,]/&\n/g' "$OUTPUT_FILE"  # But since pack removes, for non-pack keep as is
             fi
             ;;
         yaml)
+            # Recursive function to build YAML tree
             build_yaml() {
                 local dir="$1"
                 local indent="$2"
@@ -472,13 +376,14 @@ else
                     fi
                 done
             }
-            if $COMPACT; then
-                build_yaml . "" | sed 's/^[ \t]*//' > "$OUTPUT_FILE"
+            if $PACK; then
+                build_yaml "$DIRECTORY" "" | sed 's/^[ \t]*//' > "$OUTPUT_FILE"
             else
-                build_yaml . "" > "$OUTPUT_FILE"
+                build_yaml "$DIRECTORY" "" > "$OUTPUT_FILE"
             fi
             ;;
         xml)
+            # Recursive function to build XML tree
             build_xml() {
                 local dir="$1"
                 local indent="$2"
@@ -501,13 +406,14 @@ else
                 done
                 printf "%s</directory>\n" "$indent"
             }
-            if $COMPACT; then
-                build_xml . "" | tr -d ' \t\n' > "$OUTPUT_FILE"
+            if $PACK; then
+                build_xml "$DIRECTORY" "" | tr -d ' \t\n' > "$OUTPUT_FILE"
             else
-                build_xml . "" > "$OUTPUT_FILE"
+                build_xml "$DIRECTORY" "" > "$OUTPUT_FILE"
             fi
             ;;
         markdown)
+            # Recursive function to build Markdown tree
             build_markdown() {
                 local dir="$1"
                 local indent="$2"
@@ -533,17 +439,18 @@ else
                     fi
                 done
             }
-            if $COMPACT; then
-                build_markdown . "" | sed 's/^[ \t]*//' > "$OUTPUT_FILE"
+            if $PACK; then
+                build_markdown "$DIRECTORY" "" | sed 's/^[ \t]*//' > "$OUTPUT_FILE"
             else
-                build_markdown . "" > "$OUTPUT_FILE"
+                build_markdown "$DIRECTORY" "" > "$OUTPUT_FILE"
             fi
             ;;
         dot)
+            # Recursive function to build DOT (Graphviz) tree
             build_dot() {
                 local dir="$1"
                 local parent="$2"
-                local root_name=$(basename "$dir")
+                local root_name=$(basename "$DIRECTORY")
                 if [ -z "$parent" ]; then
                     echo "digraph tree{"
                     parent="$root_name"
@@ -569,13 +476,14 @@ else
                     echo "}"
                 fi
             }
-            if $COMPACT; then
-                build_dot . "" | tr -d ' \t\n' > "$OUTPUT_FILE"
+            if $PACK; then
+                build_dot "$DIRECTORY" "" | tr -d ' \t\n' > "$OUTPUT_FILE"
             else
-                build_dot . "" > "$OUTPUT_FILE"
+                build_dot "$DIRECTORY" "" > "$OUTPUT_FILE"
             fi
             ;;
         csv|excel)
+            # Use recursive function for CSV to properly handle contents exclusions
             echo "path,type" > "$OUTPUT_FILE"
             build_csv() {
                 local dir="$1"
@@ -595,17 +503,10 @@ else
                     fi
                 done
             }
-            build_csv . ""
+            build_csv "$DIRECTORY" ""
             ;;
     esac
 fi
 
-# Return to original directory
-cd - >/dev/null
-
 # Notify user of success
-if $PACK_CODE_FILES; then
-    echo "Directory tree and code file contents written to $OUTPUT_FILE in $FORMAT format"
-else
-    echo "Directory tree written to $OUTPUT_FILE in $FORMAT format"
-fi
+echo "Directory tree has been written to $OUTPUT_FILE in $FORMAT format"
